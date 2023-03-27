@@ -17,9 +17,15 @@ namespace CretaceousApi.Controllers
 
     // GET api/animals
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Animal>>> Get()
+    public async Task<ActionResult<IEnumerable<Animal>>> Get(string species)
     {
-      return await _db.Animals.ToListAsync();
+      IQueryable<Animal> query = _db.Animals.AsQueryable();
+      if ( species != null)
+      {
+        query = query.Where(entry => entry.Species == species);
+      }
+
+      return await query.ToListAsync();
     }
 
     // GET:  api/Animals/5
@@ -73,6 +79,22 @@ namespace CretaceousApi.Controllers
       }
 
       return NoContent();
+    }
+
+    // Delete: api/animals/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteAnimal(int id)
+    {
+        Animal animal = await _db.Animals.FindAsync(id);
+        if (animal == null)
+        {
+            return NotFound();
+        }
+
+        _db.Animals.Remove(animal);
+        await _db.SaveChangesAsync();
+
+        return NoContent();
     }
 
     private bool AnimalExists(int id)
